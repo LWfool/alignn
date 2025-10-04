@@ -296,7 +296,7 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     with open(filename, "wb") as f:
         f.write(data)
     model.load_state_dict(
-        torch.load(filename, map_location=device, weights_only=True)["model"]
+        torch.load(filename, map_location=device, weights_only=False)["model"]
     )
     model.to(device)
     model.eval()
