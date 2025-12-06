@@ -273,7 +273,7 @@ class AlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
                         weights_only=False,
                     )["model"]
                 )
-            model.to(device)
+            model.to(self.device)
             model.eval()
             self.model = model
         else:
@@ -291,6 +291,10 @@ class AlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
             atom_features=self.config["atom_features"],
             use_canonize=self.config["use_canonize"],
         )
+        print("self.devicee", self.device)
+        print("g", g.device)
+        print("lg", lg.device)
+        print("model", self.model)
 
         if self.config["model"]["alignn_layers"] > 0:
             result = self.model(
