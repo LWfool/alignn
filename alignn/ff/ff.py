@@ -16,7 +16,8 @@ from ase.optimize.fire import FIRE
 from ase.optimize.gpmin.gpmin import GPMin
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
-from ase.constraints import ExpCellFilter
+# from ase.constraints import ExpCellFilter
+from ase.filters import ExpCellFilter
 from ase.eos import EquationOfState
 from ase.units import kJ
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
