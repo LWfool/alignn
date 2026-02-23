@@ -10,6 +10,7 @@ import dgl.function as fn
 import numpy as np
 from dgl.nn import AvgPooling
 import torch
+from dgl.nn.functional import edge_softmax
 
 # from dgl.nn.functional import edge_softmax
 from typing import Literal
@@ -70,11 +71,108 @@ class ALIGNNAtomWiseConfig(BaseSettings):
     penalty_threshold: float = 1
     additional_output_features: int = 0
     additional_output_weight: float = 0
+    # 🆕 attention controls
+    use_nal: bool = True
+    use_sal: bool = True
+    num_attention_heads: int = 8
 
     class Config:
         """Configure model settings behavior."""
 
         env_prefix = "jv_model"
+
+
+class NodeAttentionLayer(nn.Module):
+    """
+    N-ALIGNN: Local graph attention over neighbors.
+    Lightweight GAT-style but ALIGNN-compatible.
+    """
+
+    def __init__(self, hidden_dim, num_heads=4):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.num_heads = num_heads
+        self.head_dim = hidden_dim // num_heads
+        assert (
+            hidden_dim % num_heads == 0
+        ), "hidden_dim must be divisible by num_heads"
+        self.q_proj = nn.Linear(hidden_dim, hidden_dim)
+        self.k_proj = nn.Linear(hidden_dim, hidden_dim)
+        self.v_proj = nn.Linear(hidden_dim, hidden_dim)
+
+        self.out_proj = nn.Linear(hidden_dim, hidden_dim)
+        self.norm = nn.LayerNorm(hidden_dim)
+
+    def forward(self, g, x):
+        with g.local_scope():
+
+            Q = self.q_proj(x).view(-1, self.num_heads, self.head_dim)
+            K = self.k_proj(x).view(-1, self.num_heads, self.head_dim)
+            V = self.v_proj(x).view(-1, self.num_heads, self.head_dim)
+
+            g.ndata["Q"] = Q
+            g.ndata["K"] = K
+            g.ndata["V"] = V
+
+            g.apply_edges(fn.u_dot_v("Q", "K", "score"))
+            e = g.edata["score"] / np.sqrt(self.head_dim)
+
+            alpha = edge_softmax(g, e)
+            g.edata["alpha"] = alpha
+
+            g.update_all(
+                fn.u_mul_e("V", "alpha", "m"),
+                fn.sum("m", "h_attn"),
+            )
+
+            h = g.ndata["h_attn"].reshape(-1, self.hidden_dim)
+            h = self.out_proj(h)
+
+            return self.norm(x + h)
+
+
+class SelfAttentionLayer(nn.Module):
+    """
+    T-ALIGNN: Global transformer attention.
+    Works after graph convolutions.
+    """
+
+    def __init__(self, hidden_dim, num_heads=4):
+        super().__init__()
+        self.mha = nn.MultiheadAttention(
+            embed_dim=hidden_dim,
+            num_heads=num_heads,
+            batch_first=True,
+        )
+        self.norm1 = nn.LayerNorm(hidden_dim)
+        self.ffn = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim * 4),
+            nn.SiLU(),
+            nn.Linear(hidden_dim * 4, hidden_dim),
+        )
+        self.norm2 = nn.LayerNorm(hidden_dim)
+
+    def forward(self, x, batch_nodes):
+        """
+        x: (N_total, hidden)
+        batch_nodes: list of node counts per graph
+        """
+        outputs = []
+        start = 0
+
+        for n in batch_nodes:
+            h = x[start : start + n].unsqueeze(0)  # (1,n,d)
+
+            attn_out, _ = self.mha(h, h, h)
+            h = self.norm1(h + attn_out)
+
+            ff = self.ffn(h)
+            h = self.norm2(h + ff)
+
+            outputs.append(h.squeeze(0))
+            start += n
+
+        return torch.cat(outputs, dim=0)
 
 
 def cutoff_function_based_edges_old(r, inner_cutoff=4):
@@ -309,6 +407,29 @@ class ALIGNNAtomWise(nn.Module):
             ]
         )
 
+        # 🆕 N-ALIGNN
+        if config.use_nal:
+            self.nal_layers = nn.ModuleList(
+                [
+                    NodeAttentionLayer(
+                        config.hidden_features,
+                        config.num_attention_heads,
+                    )
+                    for _ in range(config.alignn_layers)
+                ]
+            )
+        else:
+            self.nal_layers = None
+
+        # 🆕 T-ALIGNN
+        if config.use_sal:
+            self.sal = SelfAttentionLayer(
+                config.hidden_features,
+                config.num_attention_heads,
+            )
+        else:
+            self.sal = None
+
         self.readout = AvgPooling()
 
         if config.extra_features != 0:
@@ -453,12 +574,21 @@ class ALIGNNAtomWise(nn.Module):
             y = self.edge_embedding(bondlength)
         # y = self.edge_embedding(bondlength)
         # ALIGNN updates: update node, edge, triplet features
-        for alignn_layer in self.alignn_layers:
+
+        for i, alignn_layer in enumerate(self.alignn_layers):
             x, y, z = alignn_layer(g, lg, x, y, z)
 
-        # gated GCN updates: update node, edge features
+            # 🆕 N-ALIGNN
+            if self.nal_layers is not None:
+                x = self.nal_layers[i](g, x)
+
         for gcn_layer in self.gcn_layers:
             x, y = gcn_layer(g, x, y)
+        # 🆕 T-ALIGNN global attention
+        if self.sal is not None:
+            batch_nodes = g.batch_num_nodes()  # .tolist()
+            x = self.sal(x, batch_nodes)
+
         # norm-activation-pool-classify
         out = torch.empty(1)
         additional_out = torch.empty(1)
