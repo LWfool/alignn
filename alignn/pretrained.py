@@ -14,10 +14,14 @@ import json
 import argparse
 from jarvis.core.atoms import Atoms
 from alignn.graphs import Graph
-from jarvis.db.jsonutils import dumpjson
+from jarvis.db.jsonutils import loadjson, dumpjson
 import pandas as pd
 from alignn.dataset import get_torch_dataset
 import numpy as np
+from alignn.models.alignn_atomwise import (
+    ALIGNNAtomWise,
+    ALIGNNAtomWiseConfig,
+)
 
 # from jarvis.core.graphs import Graph
 
@@ -188,6 +192,10 @@ all_models = {
         66,
         {"alignn_layers": 6, "gcn_layers": 6},
     ],
+    "jv_raman_alignn": [
+        "https://ndownloader.figshare.com/files/62805487",
+        200,
+    ],
 }
 
 
@@ -283,6 +291,7 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     print("Path", os.path.abspath(path))
     print("Config", os.path.abspath(cfg))
     config = json.loads(zipfile.ZipFile(path).read(cfg))
+    print("config", config, type(config))
     # print("Loading the zipfile...", zipfile.ZipFile(path).namelist())
     data = zipfile.ZipFile(path).read(tmp)
     # model = ALIGNN(
@@ -290,18 +299,34 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     #        name="alignn", output_features=output_features, **config_params
     #    )
     # )
-    model = ALIGNN(ALIGNNConfig(**config["model"]))
+    print(config, type(config))
+    if config["model"]["name"] == "alignn":
+        model = ALIGNN(ALIGNNConfig(**config["model"]))
+        new_file, filename = tempfile.mkstemp()
+        with open(filename, "wb") as f:
+            f.write(data)
+        model.load_state_dict(
+            torch.load(filename, map_location=device, weights_only=False)[
+                "model"
+            ]
+        )
+        model.to(device)
+        model.eval()
+        if os.path.exists(filename):
+            os.remove(filename)
+    if config["model"]["name"] == "alignn_atomwise":
+        model = ALIGNNAtomWise(ALIGNNAtomWiseConfig(**config["model"]))
+        new_file, filename = tempfile.mkstemp()
+        with open(filename, "wb") as f:
+            f.write(data)
+        model.load_state_dict(
+            torch.load(filename, map_location=device, weights_only=False)
+        )
+        model.to(device)
+        model.eval()
+        if os.path.exists(filename):
+            os.remove(filename)
 
-    new_file, filename = tempfile.mkstemp()
-    with open(filename, "wb") as f:
-        f.write(data)
-    model.load_state_dict(
-        torch.load(filename, map_location=device, weights_only=False)["model"]
-    )
-    model.to(device)
-    model.eval()
-    if os.path.exists(filename):
-        os.remove(filename)
     return model
 
 
@@ -314,12 +339,8 @@ def get_prediction(
     """Get model prediction on a single structure."""
     if os.path.isdir(model_name):
 
-        from alignn.models.alignn_atomwise import (
-            ALIGNNAtomWise,
-            ALIGNNAtomWiseConfig,
-        )
-        import torch
-        from jarvis.db.jsonutils import loadjson
+        # import torch
+        # from jarvis.db.jsonutils import loadjson
 
         config = loadjson(os.path.join(model_name, "config.json"))
         model_path = os.path.join(model_name, "best_model.pt")
