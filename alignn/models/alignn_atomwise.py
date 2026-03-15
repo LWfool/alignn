@@ -465,8 +465,8 @@ class ALIGNNAtomWise(nn.Module):
             )
         if self.classification:
             self.fc = nn.Linear(config.hidden_features, 1)
-            self.softmax = nn.Sigmoid()
-            # self.softmax = nn.LogSoftmax(dim=1)
+            # self.softmax = nn.Sigmoid()
+            self.softmax = nn.LogSoftmax(dim=1)
         else:
             self.fc = nn.Linear(config.hidden_features, config.output_features)
         self.link = None
