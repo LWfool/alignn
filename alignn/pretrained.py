@@ -312,7 +312,25 @@ def get_prediction(
     max_neighbors=12,
 ):
     """Get model prediction on a single structure."""
-    model = get_figshare_model(model_name)
+    if os.path.isdir(model_name):
+
+        from alignn.models.alignn_atomwise import (
+            ALIGNNAtomWise,
+            ALIGNNAtomWiseConfig,
+        )
+        import torch
+        from jarvis.db.jsonutils import loadjson
+
+        config = loadjson(os.path.join(model_name, "config.json"))
+        model_path = os.path.join(model_name, "best_model.pt")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        tmp = ALIGNNAtomWiseConfig(**config["model"])
+        model = ALIGNNAtomWise(tmp)
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model = model.to(device)
+        print(model)
+    else:
+        model = get_figshare_model(model_name)
     # print("Loading completed.")
     g, lg = Graph.atom_dgl_multigraph(
         atoms,
@@ -320,14 +338,11 @@ def get_prediction(
         max_neighbors=max_neighbors,
     )
     lat = torch.tensor(atoms.lattice_mat)
-    out_data = (
-        model([g.to(device), lg.to(device), lat.to(device)])
-        .detach()
-        .cpu()
-        .numpy()
-        .flatten()
-        .tolist()
-    )
+    out_data = model([g.to(device), lg.to(device), lat.to(device)])
+    if isinstance(out_data, dict):
+        out_data = out_data["out"]
+    print("out_data", out_data)
+    out_data = out_data.detach().cpu().numpy().flatten().tolist()
     return out_data
 
 
