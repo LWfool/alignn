@@ -193,7 +193,8 @@ all_models = {
         {"alignn_layers": 6, "gcn_layers": 6},
     ],
     "jv_raman_alignn": [
-        "https://ndownloader.figshare.com/files/62805487",
+        "https://figshare.com/ndownloader/files/63429102",
+        # "https://ndownloader.figshare.com/files/62805487",
         200,
     ],
 }
