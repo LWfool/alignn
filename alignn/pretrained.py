@@ -337,6 +337,7 @@ def get_prediction(
     max_neighbors=12,
 ):
     """Get model prediction on a single structure."""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if os.path.isdir(model_name):
 
         # import torch
@@ -344,7 +345,6 @@ def get_prediction(
 
         config = loadjson(os.path.join(model_name, "config.json"))
         model_path = os.path.join(model_name, "best_model.pt")
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         tmp = ALIGNNAtomWiseConfig(**config["model"])
         model = ALIGNNAtomWise(tmp)
         model.load_state_dict(torch.load(model_path, map_location=device))

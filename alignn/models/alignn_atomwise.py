@@ -650,6 +650,8 @@ class ALIGNNAtomWise(nn.Module):
 
         if self.classification:
             # out = torch.max(out,dim=1)
+            if out.dim() == 1:
+                out = out.unsqueeze(0)
             out = self.softmax(out)
         result["out"] = out
         result["additional"] = additional_out

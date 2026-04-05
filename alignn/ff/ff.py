@@ -16,6 +16,7 @@ from ase.optimize.fire import FIRE
 from ase.optimize.gpmin.gpmin import GPMin
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
+
 # from ase.constraints import ExpCellFilter
 from ase.filters import ExpCellFilter
 from ase.eos import EquationOfState
@@ -462,7 +463,8 @@ class ForceField(object):
             self.timestep,
             temperature_K=temperature_K,
             friction=friction,
-            communicator=self.communicator,
+            comm=self.communicator,
+            # communicator=self.communicator,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -495,7 +497,8 @@ class ForceField(object):
             self.timestep,
             temperature_K=temperature_K,
             andersen_prob=andersen_prob,
-            communicator=self.communicator,
+            comm=self.communicator,
+            # communicator=self.communicator,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -530,7 +533,8 @@ class ForceField(object):
             self.timestep,
             temperature_K=temperature_K,
             taut=taut,
-            communicator=self.communicator,
+            comm=self.communicator,
+            # communicator=self.communicator,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -569,7 +573,8 @@ class ForceField(object):
             taup=taup,
             pressure=pressure,
             compressibility=compressibility,
-            communicator=self.communicator,
+            comm=self.communicator,
+            # communicator=self.communicator,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
