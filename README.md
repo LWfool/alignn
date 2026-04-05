@@ -1,9 +1,9 @@
-![alt text](https://github.com/usnistgov/alignn/actions/workflows/main.yml/badge.svg)
-[![codecov](https://codecov.io/gh/usnistgov/alignn/branch/main/graph/badge.svg?token=S5X4OYC80V)](https://codecov.io/gh/usnistgov/alignn)
+![alt text](https://github.com/atomgptlab/alignn/actions/workflows/main.yml/badge.svg)
+[![codecov](https://codecov.io/gh/atomgptlab/alignn/branch/main/graph/badge.svg?token=S5X4OYC80V)](https://codecov.io/gh/atomgptlab/alignn)
 [![PyPI version](https://badge.fury.io/py/alignn.svg)](https://badge.fury.io/py/alignn)
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/usnistgov/alignn)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/usnistgov/alignn)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/y/usnistgov/alignn)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/atomgptlab/alignn)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/atomgptlab/alignn)
+![GitHub commit activity](https://img.shields.io/github/commit-activity/y/atomgptlab/alignn)
 [![Downloads](https://pepy.tech/badge/alignn)](https://pepy.tech/project/alignn)
 <!--
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/atomistic-line-graph-neural-network-for/formation-energy-on-materials-project)](https://paperswithcode.com/sota/formation-energy-on-materials-project?p=atomistic-line-graph-neural-network-for)
@@ -35,7 +35,7 @@ Atomisitic line graph neural network-based FF (ALIGNN-FF) (https://pubs.rsc.org/
 
 
 
-![ALIGNN layer schematic](https://github.com/usnistgov/alignn/blob/develop/alignn/tex/schematic_lg.jpg)
+![ALIGNN layer schematic](https://github.com/atomgptlab/alignn/blob/develop/alignn/tex/schematic_lg.jpg)
 
 <a name="install"></a>
 Installation
@@ -72,7 +72,7 @@ You can laso install a development version of alignn by cloning the repository a
 conda create --name my_alignn python=3.10 -y
 conda activate my_alignn
 conda install dgl=2.1.0 pytorch torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
-git clone https://github.com/usnistgov/alignn
+git clone https://github.com/atomgptlab/alignn
 cd alignn
 python -m pip install -e .
 ```
@@ -122,9 +122,9 @@ Users can keep their structure files in `POSCAR`, `.cif`, `.xyz` or `.pdb` files
 
 In this directory, `id_prop.csv`, the filenames, and correponding target values are kept in `comma separated values (csv) format`.
 
-Here is an example of training OptB88vdw bandgaps of 50 materials from JARVIS-DFT database. The example is created using the [generate_sample_data_reg.py](https://github.com/usnistgov/alignn/blob/main/alignn/examples/sample_data/scripts/generate_sample_data_reg.py) script. Users can modify the script for more than 50 data, or make their own dataset in this format. For list of available datasets see [Databases](https://jarvis-tools.readthedocs.io/en/master/databases.html).
+Here is an example of training OptB88vdw bandgaps of 50 materials from JARVIS-DFT database. The example is created using the [generate_sample_data_reg.py](https://github.com/atomgptlab/alignn/blob/main/alignn/examples/sample_data/scripts/generate_sample_data_reg.py) script. Users can modify the script for more than 50 data, or make their own dataset in this format. For list of available datasets see [Databases](https://jarvis-tools.readthedocs.io/en/master/databases.html).
 
-The dataset in split in 80:10:10 as training-validation-test set (controlled by `train_ratio, val_ratio, test_ratio`) . To change the split proportion and other parameters, change the [config_example.json](https://github.com/usnistgov/alignn/blob/main/alignn/examples/sample_data/config_example.json) file. If, users want to train on certain sets and val/test on another dataset, set `n_train`, `n_val`, `n_test` manually in the `config_example.json` and also set `keep_data_order` as True there so that random shuffle is disabled.
+The dataset in split in 80:10:10 as training-validation-test set (controlled by `train_ratio, val_ratio, test_ratio`) . To change the split proportion and other parameters, change the [config_example.json](https://github.com/atomgptlab/alignn/blob/main/alignn/examples/sample_data/config_example.json) file. If, users want to train on certain sets and val/test on another dataset, set `n_train`, `n_val`, `n_test` manually in the `config_example.json` and also set `keep_data_order` as True there so that random shuffle is disabled.
 
 A brief help guide (`-h`) can be obtained as follows.
 
@@ -169,7 +169,7 @@ To finetune model, use `--restart_model_path` tag as well in the above with the 
 train_alignn.py --root_dir "alignn/examples/sample_data_ff" --restart_model_path "temp/best_model.pt" --config "alignn/examples/sample_data_ff/config_example_atomwise.json" --output_dir="temp1"
 ```
 
-Starting version v2024.10.30, we also allow global training for multi-output along with energy (graph wise output), forces (atomwise gradients), charges/magnetic moments etc. (atomwise but non-gradients) properties with or without additional fingerprints/features in graph. See examples [here](https://github.com/usnistgov/alignn/tree/main/alignn/examples). 
+Starting version v2024.10.30, we also allow global training for multi-output along with energy (graph wise output), forces (atomwise gradients), charges/magnetic moments etc. (atomwise but non-gradients) properties with or without additional fingerprints/features in graph. See examples [here](https://github.com/atomgptlab/alignn/tree/main/alignn/examples). 
 
 Multi-GPU training is allowed with `DistributedDataParallel` with `torchrun` command. This feature is not thoroughly tested yet. 
 Example:
@@ -179,7 +179,7 @@ torchrun --nproc_per_node=4 train_alignn.py --root_dir DataDir --config config.j
 ```
 For multi-GPU training make sure you have correct SLURM/PBS script setup correctly such as `#SBATCH -n 4, #SBATCH -N 1, #SBATCH --gres=gpu:4` etc.
 
-High-throughput like training: Users can also try training using multiple example scripts to run multiple dataset (such as JARVIS-DFT, Materials project, QM9_JCTC etc.). Look into the [alignn/scripts/train_*.py](https://github.com/usnistgov/alignn/tree/main/alignn/scripts) folder. This is done primarily to make the trainings more automated rather than making folder/ csv files etc.
+High-throughput like training: Users can also try training using multiple example scripts to run multiple dataset (such as JARVIS-DFT, Materials project, QM9_JCTC etc.). Look into the [alignn/scripts/train_*.py](https://github.com/atomgptlab/alignn/tree/main/alignn/scripts) folder. This is done primarily to make the trainings more automated rather than making folder/ csv files etc.
 These scripts automatically download datasets from [Databases in jarvis-tools](https://jarvis-tools.readthedocs.io/en/master/databases.html) and train several models. Make sure you specify your specific queuing system details in the scripts.
 
 
@@ -193,7 +193,7 @@ Using pre-trained models
 
 All the trained models are distributed on [Figshare](https://figshare.com/projects/ALIGNN_models/126478.
 
-The [pretrained.py script](https://github.com/usnistgov/alignn/blob/develop/alignn/pretrained.py) can be applied to use them. These models can be used to directly make predictions.
+The [pretrained.py script](https://github.com/atomgptlab/alignn/blob/develop/alignn/pretrained.py) can be applied to use them. These models can be used to directly make predictions.
 
 A brief help section (`-h`) is shown using:
 
@@ -226,18 +226,18 @@ Several supporting scripts for stucture optimization, equation of states, phonon
 Web-apps
 ------------
 
-A basic web-app is for direct-prediction available at [JARVIS-ALIGNN app](https://jarvis.nist.gov/jalignn/). Given atomistic structure in POSCAR format it predict formation energy, total energy per atom and bandgap using data trained on JARVIS-DFT dataset.
+A basic web-app is for direct-prediction available at [AtomGPT.org ALIGNN app](https://atomgpt.org/alignn). Given atomistic structure in POSCAR format it predict formation energy, total energy per atom and bandgap using data trained on JARVIS-DFT dataset.
 
-Similarly, a web-app for [ALIGNN-FF](https://jarvis.nist.gov/jalignnff/) for structure optimization is also available.
+Similarly, a web-app for [ALIGNN-FF](https://atomgpt.org/alignn_ff_dynamics) for structure optimization is also available.
 
-![JARVIS-ALIGNN](https://github.com/usnistgov/alignn/blob/develop/alignn/tex/jalignn.PNG)
+![JARVIS-ALIGNN](https://github.com/atomgptlab/alignn/blob/develop/alignn/tex/jalignn.PNG)
 
 
 
 <a name="alignnff"></a>
 ALIGNN-FF ASE Calculaor
 -------------------------
-![ALIGNN FF](https://github.com/usnistgov/alignn/blob/develop/alignn/tex/animation.gif)
+![ALIGNN FF](https://github.com/atomgptlab/alignn/blob/develop/alignn/tex/animation.gif)
 
 
 [ASE calculator](https://wiki.fysik.dtu.dk/ase/ase/calculators/calculators.html) provides interface to various codes. An example for ALIGNN-FF is give below. Note that there are multiple pretrained ALIGNN-FF models available, here we use the deafult_path model. As more accurate models are developed, they will be made available as well:
@@ -374,7 +374,7 @@ The results from models other than ALIGNN are reported as given in corresponding
 
 ### 4) On QM9 dataset
 
-Note the [issue](https://github.com/usnistgov/alignn/issues/54) related to QM9 dataset. The results from models other than ALIGNN are reported as given in corresponding papers, not necessarily reproduced by us. These models were trained with same parameters as solid-state databases but for 1000 epochs.
+Note the [issue](https://github.com/atomgptlab/alignn/issues/54) related to QM9 dataset. The results from models other than ALIGNN are reported as given in corresponding papers, not necessarily reproduced by us. These models were trained with same parameters as solid-state databases but for 1000 epochs.
 
 | Target | Units | SchNet | MEGNet  | DimeNet++ | ALIGNN |
 |:------:|-------|--------|---------|-----------|--------|
@@ -440,7 +440,7 @@ Useful notes (based on some of the queries we received)
 2) While comnventional '.cif' and '.pdb' files can be read using jarvis-tools, for complex files you might have to install `cif2cell` and `pytraj` respectively i.e.`pip install cif2cell==2.0.0a3` and `conda install -c ambermd pytraj`.
 3) Make sure you use `batch_size` as 32 or 64 for large datasets, and not 2 as given in the example config file, else it will take much longer to train, and performnce might drop a lot.
 4) Note that `train_alignn.py` and `pretrained.py` in alignn folder are actually python executable scripts. So, even if you don't provide absolute path of these scripts, they should work.
-5) Learn about the issue with QM9 results here: https://github.com/usnistgov/alignn/issues/54
+5) Learn about the issue with QM9 results here: https://github.com/atomgptlab/alignn/issues/54
 6) Make sure you have `pandas` version as >1.2.3.
 7) Starting March 2024, pytroch-ignite dependency will be removed to enable conda-forge build.
 
@@ -459,7 +459,7 @@ References
 8) [Unified graph neural network force-field for the periodic table](https://pubs.rsc.org/en/content/articlehtml/2023/dd/d2dd00096b)
 9) [Large Scale Benchmark of Materials Design Methods](https://www.nature.com/articles/s41524-024-01259-w)
 10) [Prediction of Magnetic Properties in van der Waals Magnets using Graph Neural Networks](https://doi.org/10.1103/PhysRevMaterials.8.114002)
-11) [CHIPS-FF: Benchmarking universal force-fields](https://github.com/usnistgov/chipsff)
+11) [CHIPS-FF: Benchmarking universal force-fields](https://github.com/atomgptlab/chipsff)
 
 
 Please see detailed publications list [here](https://jarvis-tools.readthedocs.io/en/master/publications.html).
@@ -468,13 +468,13 @@ Please see detailed publications list [here](https://jarvis-tools.readthedocs.io
 How to contribute
 -----------------
 
-For detailed instructions, please see [Contribution instructions](https://github.com/usnistgov/jarvis/blob/master/Contribution.rst)
+For detailed instructions, please see [Contribution instructions](https://github.com/atomgptlab/jarvis/blob/master/Contribution.rst)
 
 <a name="corres"></a>
 Correspondence
 --------------------
 
-Please report bugs as Github issues (https://github.com/usnistgov/alignn/issues) or email to kamal.choudhary@nist.gov.
+Please report bugs as Github issues (https://github.com/atomgptlab/alignn/issues) or email to drkamal@jhu.edu .
 
 <a name="fund"></a>
 Funding support
@@ -487,4 +487,4 @@ NIST-CHIPS (https://www.nist.gov/chips)
 Code of conduct
 --------------------
 
-Please see [Code of conduct](https://github.com/usnistgov/jarvis/blob/master/CODE_OF_CONDUCT.md)
+Please see [Code of conduct](https://github.com/atomgptlab/jarvis/blob/master/CODE_OF_CONDUCT.md)

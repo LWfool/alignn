@@ -22,7 +22,7 @@ from alignn.models.alignn_atomwise import (
     ALIGNNAtomWise,
     ALIGNNAtomWiseConfig,
 )
-
+from jarvis.core.utils import get_cache_dir
 # from jarvis.core.graphs import Graph
 
 tqdm.pandas()
@@ -260,7 +260,8 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     # else:
     #    config_params = {}
     zfile = model_name + ".zip"
-    path = str(os.path.join(os.path.dirname(__file__), zfile))
+    # path = str(os.path.join(os.path.dirname(__file__), zfile))
+    path = os.path.join(get_cache_dir("alignn_models"), zfile)
     if not os.path.isfile(path):
         response = requests.get(url, stream=True)
         total_size_in_bytes = int(response.headers.get("content-length", 0))

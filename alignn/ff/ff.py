@@ -47,7 +47,7 @@ from ase.cell import Cell
 from matplotlib.gridspec import GridSpec
 from sklearn.metrics import mean_absolute_error
 from tqdm import tqdm
-
+from jarvis.core.utils import get_cache_dir
 # import torch
 from alignn.ff.calculators import (
     AlignnAtomwiseCalculator,
@@ -85,7 +85,8 @@ def get_figshare_model_ff(
     all_models_ff = get_all_models()
     # https://doi.org/10.6084/m9.figshare.23695695
     if dir_path is None:
-        dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        # dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        dir_path = os.path.join(get_cache_dir("alignn_ff"), model_name)
     # cwd=os.getcwd()
     dir_path = os.path.abspath(dir_path)
     if not os.path.exists(dir_path):
@@ -145,7 +146,8 @@ def get_figshare_model_prop(
     all_models_prop = get_all_models_prop()
     # https://doi.org/10.6084/m9.figshare.23695695
     if dir_path is None:
-        dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        # dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        dir_path = os.path.join(get_cache_dir("alignn_models"), model_name)
     # cwd=os.getcwd()
     dir_path = os.path.abspath(dir_path)
     if not os.path.exists(dir_path):
