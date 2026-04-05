@@ -455,6 +455,7 @@ class iAlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
             )
         )
         ff_model.eval()
+        ff_model.to(self.device)
         self.ff_model = ff_model
         if prop_path is None and prop_model is None:
             prop_path = get_figshare_model_ff(
@@ -477,6 +478,7 @@ class iAlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
             )
         )
         prop_model.eval()
+        prop_model.to(self.device)
         self.prop_model = prop_model
 
     def calculate(

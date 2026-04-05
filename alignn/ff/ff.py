@@ -458,13 +458,24 @@ class ForceField(object):
             self.set_momentum_maxwell_boltzmann(
                 temperature_K=initial_temperature_K
             )
+        # self.dyn = Langevin(
+        #    self.atoms,
+        #    self.timestep,
+        #    temperature_K=temperature_K,
+        #    friction=friction,
+        #    comm=self.communicator,
+        #    # communicator=self.communicator,
+        # )
+        langevin_kwargs = dict(
+            temperature_K=temperature_K,
+            friction=friction,
+        )
+        if self.communicator is not None:
+            langevin_kwargs["comm"] = self.communicator
         self.dyn = Langevin(
             self.atoms,
             self.timestep,
-            temperature_K=temperature_K,
-            friction=friction,
-            comm=self.communicator,
-            # communicator=self.communicator,
+            **langevin_kwargs,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -492,13 +503,25 @@ class ForceField(object):
             self.set_momentum_maxwell_boltzmann(
                 temperature_K=initial_temperature_K
             )
+        # self.dyn = Andersen(
+        #    self.atoms,
+        #    self.timestep,
+        #    temperature_K=temperature_K,
+        #    andersen_prob=andersen_prob,
+        #    comm=self.communicator,
+        #    # communicator=self.communicator,
+        # )
+
+        andersen_kwargs = dict(
+            temperature_K=temperature_K,
+            andersen_prob=andersen_prob,
+        )
+        if self.communicator is not None:
+            andersen_kwargs["comm"] = self.communicator
         self.dyn = Andersen(
             self.atoms,
             self.timestep,
-            temperature_K=temperature_K,
-            andersen_prob=andersen_prob,
-            comm=self.communicator,
-            # communicator=self.communicator,
+            **andersen_kwargs,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -565,16 +588,31 @@ class ForceField(object):
             self.set_momentum_maxwell_boltzmann(
                 temperature_K=initial_temperature_K
             )
-        self.dyn = NPTBerendsen(
-            self.atoms,
-            self.timestep,
+        # self.dyn = NPTBerendsen(
+        #    self.atoms,
+        #    self.timestep,
+        #    temperature_K=temperature_K,
+        #    taut=taut,
+        #    taup=taup,
+        #    pressure=pressure,
+        #    compressibility=compressibility,
+        #    comm=self.communicator,
+        #    # communicator=self.communicator,
+        # )
+
+        npt_kwargs = dict(
             temperature_K=temperature_K,
             taut=taut,
             taup=taup,
             pressure=pressure,
             compressibility=compressibility,
-            comm=self.communicator,
-            # communicator=self.communicator,
+        )
+        if self.communicator is not None:
+            npt_kwargs["comm"] = self.communicator
+        self.dyn = NPTBerendsen(
+            self.atoms,
+            self.timestep,
+            **npt_kwargs,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
