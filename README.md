@@ -226,7 +226,7 @@ Several supporting scripts for stucture optimization, equation of states, phonon
 Web-apps
 ------------
 
-A basic web-app is for direct-prediction available at [AtomGPT.org ALIGNN app](https://atomgpt.org/alignn). Given atomistic structure in POSCAR format it predict formation energy, total energy per atom and bandgap using data trained on JARVIS-DFT dataset.
+A basic web-app is for direct-prediction available at [AtomGPT.org ALIGNN app](https://atomgpt.org/alignn). Given atomistic structure in POSCAR format it predict formation energy, total energy per atom, bandgap and other props using data trained on JARVIS-DFT dataset.
 
 Similarly, a web-app for [ALIGNN-FF](https://atomgpt.org/alignn_ff_dynamics) for structure optimization is also available.
 
