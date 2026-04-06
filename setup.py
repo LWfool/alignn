@@ -1,6 +1,6 @@
 """ALIGNN: Atomistic LIne Graph Neural Network.
 
-https://jarvis.nist.gov.
+https://atomgpt.org/alignn
 """
 
 import setuptools
@@ -10,18 +10,20 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="alignn",
-    version="2025.4.1",
+    version="2026.4.1",
     author="Kamal Choudhary, Brian DeCost",
     author_email="kamal.choudhary@nist.gov",
     description="alignn",
     install_requires=[
-        "numpy<2.0",
+        # "numpy<2.0",
         # "numpy>=1.19.5,<2.0.0",
+        "numpy>=1.19.5",
         "scipy>=1.6.1",
         "jarvis-tools>=2021.07.19",
-        "torch<=2.2.1",
+        "torch>=2.2.1",
+        # "torch<=2.2.1",
         "mpmath<=1.3.0",
-        "dgl<=1.1.1",
+        # "dgl>=0.6.0",
         "spglib>=2.0.2",
         "scikit-learn>=0.22.2",
         "matplotlib>=3.4.1",
@@ -32,7 +34,8 @@ setuptools.setup(
         "flake8>=3.9.1",
         "pycodestyle>=2.7.0",
         "pydocstyle>=6.0.0",
-        "pyparsing>=2.2.1,<3",
+        # "pyparsing>=2.2.1,<3",
+        "pyparsing>=2.2.1",
         "ase",
         "lmdb",
     ],
@@ -43,7 +46,7 @@ setuptools.setup(
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/usnistgov/alignn",
+    url="https://github.com/atomgptlab/alignn",
     packages=setuptools.find_packages(),
     package_data={
         "alignn.ff": [

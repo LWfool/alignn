@@ -16,7 +16,9 @@ from ase.optimize.fire import FIRE
 from ase.optimize.gpmin.gpmin import GPMin
 from ase.optimize.lbfgs import LBFGS, LBFGSLineSearch
 from ase.optimize.mdmin import MDMin
-from ase.constraints import ExpCellFilter
+
+# from ase.constraints import ExpCellFilter
+from ase.filters import ExpCellFilter
 from ase.eos import EquationOfState
 from ase.units import kJ
 from ase.optimize.sciopt import SciPyFminBFGS, SciPyFminCG
@@ -45,7 +47,7 @@ from ase.cell import Cell
 from matplotlib.gridspec import GridSpec
 from sklearn.metrics import mean_absolute_error
 from tqdm import tqdm
-
+from jarvis.core.utils import get_cache_dir
 # import torch
 from alignn.ff.calculators import (
     AlignnAtomwiseCalculator,
@@ -83,7 +85,8 @@ def get_figshare_model_ff(
     all_models_ff = get_all_models()
     # https://doi.org/10.6084/m9.figshare.23695695
     if dir_path is None:
-        dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        # dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        dir_path = os.path.join(get_cache_dir("alignn_ff"), model_name)
     # cwd=os.getcwd()
     dir_path = os.path.abspath(dir_path)
     if not os.path.exists(dir_path):
@@ -143,7 +146,8 @@ def get_figshare_model_prop(
     all_models_prop = get_all_models_prop()
     # https://doi.org/10.6084/m9.figshare.23695695
     if dir_path is None:
-        dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        # dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        dir_path = os.path.join(get_cache_dir("alignn_models"), model_name)
     # cwd=os.getcwd()
     dir_path = os.path.abspath(dir_path)
     if not os.path.exists(dir_path):
@@ -456,12 +460,24 @@ class ForceField(object):
             self.set_momentum_maxwell_boltzmann(
                 temperature_K=initial_temperature_K
             )
+        # self.dyn = Langevin(
+        #    self.atoms,
+        #    self.timestep,
+        #    temperature_K=temperature_K,
+        #    friction=friction,
+        #    comm=self.communicator,
+        #    # communicator=self.communicator,
+        # )
+        langevin_kwargs = dict(
+            temperature_K=temperature_K,
+            friction=friction,
+        )
+        if self.communicator is not None:
+            langevin_kwargs["comm"] = self.communicator
         self.dyn = Langevin(
             self.atoms,
             self.timestep,
-            temperature_K=temperature_K,
-            friction=friction,
-            communicator=self.communicator,
+            **langevin_kwargs,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -489,12 +505,25 @@ class ForceField(object):
             self.set_momentum_maxwell_boltzmann(
                 temperature_K=initial_temperature_K
             )
+        # self.dyn = Andersen(
+        #    self.atoms,
+        #    self.timestep,
+        #    temperature_K=temperature_K,
+        #    andersen_prob=andersen_prob,
+        #    comm=self.communicator,
+        #    # communicator=self.communicator,
+        # )
+
+        andersen_kwargs = dict(
+            temperature_K=temperature_K,
+            andersen_prob=andersen_prob,
+        )
+        if self.communicator is not None:
+            andersen_kwargs["comm"] = self.communicator
         self.dyn = Andersen(
             self.atoms,
             self.timestep,
-            temperature_K=temperature_K,
-            andersen_prob=andersen_prob,
-            communicator=self.communicator,
+            **andersen_kwargs,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -529,7 +558,8 @@ class ForceField(object):
             self.timestep,
             temperature_K=temperature_K,
             taut=taut,
-            communicator=self.communicator,
+            comm=self.communicator,
+            # communicator=self.communicator,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)
@@ -560,15 +590,31 @@ class ForceField(object):
             self.set_momentum_maxwell_boltzmann(
                 temperature_K=initial_temperature_K
             )
-        self.dyn = NPTBerendsen(
-            self.atoms,
-            self.timestep,
+        # self.dyn = NPTBerendsen(
+        #    self.atoms,
+        #    self.timestep,
+        #    temperature_K=temperature_K,
+        #    taut=taut,
+        #    taup=taup,
+        #    pressure=pressure,
+        #    compressibility=compressibility,
+        #    comm=self.communicator,
+        #    # communicator=self.communicator,
+        # )
+
+        npt_kwargs = dict(
             temperature_K=temperature_K,
             taut=taut,
             taup=taup,
             pressure=pressure,
             compressibility=compressibility,
-            communicator=self.communicator,
+        )
+        if self.communicator is not None:
+            npt_kwargs["comm"] = self.communicator
+        self.dyn = NPTBerendsen(
+            self.atoms,
+            self.timestep,
+            **npt_kwargs,
         )
         # Create monitors for logfile and a trajectory file
         # logfile = os.path.join(".", "%s.log" % filename)

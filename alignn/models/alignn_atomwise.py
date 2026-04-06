@@ -343,9 +343,10 @@ class ALIGNNAtomWise(nn.Module):
                 config.hidden_features, config.additional_output_features
             )
         if self.classification:
-            self.fc = nn.Linear(config.hidden_features, 1)
-            self.softmax = nn.Sigmoid()
-            # self.softmax = nn.LogSoftmax(dim=1)
+            # self.fc = nn.Linear(config.hidden_features, 1)
+            self.fc = nn.Linear(config.hidden_features, 2)
+            # self.softmax = nn.Sigmoid()
+            self.softmax = nn.LogSoftmax(dim=1)
         else:
             self.fc = nn.Linear(config.hidden_features, config.output_features)
         self.link = None
@@ -650,6 +651,8 @@ class ALIGNNAtomWise(nn.Module):
 
         if self.classification:
             # out = torch.max(out,dim=1)
+            if out.dim() == 1:
+                out = out.unsqueeze(0)
             out = self.softmax(out)
         result["out"] = out
         result["additional"] = additional_out

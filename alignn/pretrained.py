@@ -14,11 +14,15 @@ import json
 import argparse
 from jarvis.core.atoms import Atoms
 from alignn.graphs import Graph
-from jarvis.db.jsonutils import dumpjson
+from jarvis.db.jsonutils import loadjson, dumpjson
 import pandas as pd
 from alignn.dataset import get_torch_dataset
 import numpy as np
-
+from alignn.models.alignn_atomwise import (
+    ALIGNNAtomWise,
+    ALIGNNAtomWiseConfig,
+)
+from jarvis.core.utils import get_cache_dir
 # from jarvis.core.graphs import Graph
 
 tqdm.pandas()
@@ -35,158 +39,162 @@ extra config params (optional)
 # to load as a calculator
 all_models = {
     "jv_formation_energy_peratom_alignn": [
-        "https://figshare.com/ndownloader/files/31458679",
+        "https://ndownloader.figshare.com/files/31458679",
         1,
     ],
     "jv_optb88vdw_total_energy_alignn": [
-        "https://figshare.com/ndownloader/files/31459642",
+        "https://ndownloader.figshare.com/files/31459642",
         1,
     ],
     "jv_optb88vdw_bandgap_alignn": [
-        "https://figshare.com/ndownloader/files/31459636",
+        "https://ndownloader.figshare.com/files/31459636",
         1,
     ],
     "jv_mbj_bandgap_alignn": [
-        "https://figshare.com/ndownloader/files/31458694",
+        "https://ndownloader.figshare.com/files/31458694",
         1,
     ],
     "jv_spillage_alignn": [
-        "https://figshare.com/ndownloader/files/31458736",
+        "https://ndownloader.figshare.com/files/31458736",
         1,
     ],
-    "jv_slme_alignn": ["https://figshare.com/ndownloader/files/31458727", 1],
+    "jv_slme_alignn": ["https://ndownloader.figshare.com/files/31458727", 1],
     "jv_bulk_modulus_kv_alignn": [
-        "https://figshare.com/ndownloader/files/31458649",
+        "https://ndownloader.figshare.com/files/31458649",
         1,
     ],
     "jv_shear_modulus_gv_alignn": [
-        "https://figshare.com/ndownloader/files/31458724",
+        "https://ndownloader.figshare.com/files/31458724",
         1,
     ],
     "jv_n-Seebeck_alignn": [
-        "https://figshare.com/ndownloader/files/31458718",
+        "https://ndownloader.figshare.com/files/31458718",
         1,
     ],
     "jv_n-powerfact_alignn": [
-        "https://figshare.com/ndownloader/files/31458712",
+        "https://ndownloader.figshare.com/files/31458712",
         1,
     ],
     "intermat_cbm": [
-        "https://figshare.com/ndownloader/files/45392908",
+        "https://ndownloader.figshare.com/files/45392908",
         1,
     ],
     "intermat_vbm": [
-        "https://figshare.com/ndownloader/files/45392914",
+        "https://ndownloader.figshare.com/files/45392914",
         1,
     ],
     "intermat_phi": [
-        "https://figshare.com/ndownloader/files/45392911",
+        "https://ndownloader.figshare.com/files/45392911",
         1,
     ],
     "jv_magmom_oszicar_alignn": [
-        "https://figshare.com/ndownloader/files/31458685",
+        "https://ndownloader.figshare.com/files/31458685",
         1,
     ],
     "jv_kpoint_length_unit_alignn": [
-        "https://figshare.com/ndownloader/files/31458682",
+        "https://ndownloader.figshare.com/files/31458682",
         1,
     ],
     "jv_avg_elec_mass_alignn": [
-        "https://figshare.com/ndownloader/files/31458643",
+        "https://ndownloader.figshare.com/files/31458643",
         1,
     ],
     "jv_avg_hole_mass_alignn": [
-        "https://figshare.com/ndownloader/files/31458646",
+        "https://ndownloader.figshare.com/files/31458646",
         1,
     ],
-    "jv_epsx_alignn": ["https://figshare.com/ndownloader/files/31458667", 1],
-    "jv_mepsx_alignn": ["https://figshare.com/ndownloader/files/31458703", 1],
+    "jv_epsx_alignn": ["https://ndownloader.figshare.com/files/31458667", 1],
+    "jv_mepsx_alignn": ["https://ndownloader.figshare.com/files/31458703", 1],
     "jv_max_efg_alignn": [
-        "https://figshare.com/ndownloader/files/31458691",
+        "https://ndownloader.figshare.com/files/31458691",
         1,
     ],
-    "jv_ehull_alignn": ["https://figshare.com/ndownloader/files/31458658", 1],
+    "jv_ehull_alignn": ["https://ndownloader.figshare.com/files/31458658", 1],
     "jv_dfpt_piezo_max_dielectric_alignn": [
-        "https://figshare.com/ndownloader/files/31458652",
+        "https://ndownloader.figshare.com/files/31458652",
         1,
     ],
     "jv_dfpt_piezo_max_dij_alignn": [
-        "https://figshare.com/ndownloader/files/31458655",
+        "https://ndownloader.figshare.com/files/31458655",
         1,
     ],
     "jv_exfoliation_energy_alignn": [
-        "https://figshare.com/ndownloader/files/31458676",
+        "https://ndownloader.figshare.com/files/31458676",
         1,
     ],
     "jv_supercon_tc_alignn": [
-        "https://figshare.com/ndownloader/files/38789199",
+        "https://ndownloader.figshare.com/files/38789199",
         1,
     ],
     "jv_supercon_edos_alignn": [
-        "https://figshare.com/ndownloader/files/39946300",
+        "https://ndownloader.figshare.com/files/39946300",
         1,
     ],
     "jv_supercon_debye_alignn": [
-        "https://figshare.com/ndownloader/files/39946297",
+        "https://ndownloader.figshare.com/files/39946297",
         1,
     ],
     "jv_supercon_a2F_alignn": [
-        "https://figshare.com/ndownloader/files/38801886",
+        "https://ndownloader.figshare.com/files/38801886",
         100,
     ],
     "mp_e_form_alignn": [
-        "https://figshare.com/ndownloader/files/31458811",
+        "https://ndownloader.figshare.com/files/31458811",
         1,
     ],
     "mp_gappbe_alignn": [
-        "https://figshare.com/ndownloader/files/31458814",
+        "https://ndownloader.figshare.com/files/31458814",
         1,
     ],
-    "tinnet_O_alignn": ["https://figshare.com/ndownloader/files/41962800", 1],
-    "tinnet_N_alignn": ["https://figshare.com/ndownloader/files/41962797", 1],
-    "tinnet_OH_alignn": ["https://figshare.com/ndownloader/files/41962803", 1],
-    "AGRA_O_alignn": ["https://figshare.com/ndownloader/files/41966619", 1],
-    "AGRA_OH_alignn": ["https://figshare.com/ndownloader/files/41966610", 1],
-    "AGRA_CHO_alignn": ["https://figshare.com/ndownloader/files/41966643", 1],
-    "AGRA_CO_alignn": ["https://figshare.com/ndownloader/files/41966634", 1],
-    "AGRA_COOH_alignn": ["https://figshare.com/ndownloader/41966646", 1],
-    "qm9_U0_alignn": ["https://figshare.com/ndownloader/files/31459054", 1],
-    "qm9_U_alignn": ["https://figshare.com/ndownloader/files/31459051", 1],
-    "qm9_alpha_alignn": ["https://figshare.com/ndownloader/files/31459027", 1],
-    "qm9_gap_alignn": ["https://figshare.com/ndownloader/files/31459036", 1],
-    "qm9_G_alignn": ["https://figshare.com/ndownloader/files/31459033", 1],
-    "qm9_HOMO_alignn": ["https://figshare.com/ndownloader/files/31459042", 1],
-    "qm9_LUMO_alignn": ["https://figshare.com/ndownloader/files/31459045", 1],
-    "qm9_ZPVE_alignn": ["https://figshare.com/ndownloader/files/31459057", 1],
+    "tinnet_O_alignn": ["https://ndownloader.figshare.com/files/41962800", 1],
+    "tinnet_N_alignn": ["https://ndownloader.figshare.com/files/41962797", 1],
+    "tinnet_OH_alignn": ["https://ndownloader.figshare.com/files/41962803", 1],
+    "AGRA_O_alignn": ["https://ndownloader.figshare.com/files/41966619", 1],
+    "AGRA_OH_alignn": ["https://ndownloader.figshare.com/files/41966610", 1],
+    "AGRA_CHO_alignn": ["https://ndownloader.figshare.com/files/41966643", 1],
+    "AGRA_CO_alignn": ["https://ndownloader.figshare.com/files/41966634", 1],
+    "AGRA_COOH_alignn": ["https://ndownloader.figshare.com/41966646", 1],
+    "qm9_U0_alignn": ["https://ndownloader.figshare.com/files/31459054", 1],
+    "qm9_U_alignn": ["https://ndownloader.figshare.com/files/31459051", 1],
+    "qm9_alpha_alignn": ["https://ndownloader.figshare.com/files/31459027", 1],
+    "qm9_gap_alignn": ["https://ndownloader.figshare.com/files/31459036", 1],
+    "qm9_G_alignn": ["https://ndownloader.figshare.com/files/31459033", 1],
+    "qm9_HOMO_alignn": ["https://ndownloader.figshare.com/files/31459042", 1],
+    "qm9_LUMO_alignn": ["https://ndownloader.figshare.com/files/31459045", 1],
+    "qm9_ZPVE_alignn": ["https://ndownloader.figshare.com/files/31459057", 1],
     "hmof_co2_absp_alignn": [
-        "https://figshare.com/ndownloader/files/31459198",
+        "https://ndownloader.figshare.com/files/31459198",
         5,
     ],
     "hmof_max_co2_adsp_alignn": [
-        "https://figshare.com/ndownloader/files/31459207",
+        "https://ndownloader.figshare.com/files/31459207",
         1,
     ],
     "hmof_surface_area_m2g_alignn": [
-        "https://figshare.com/ndownloader/files/31459222",
+        "https://ndownloader.figshare.com/files/31459222",
         1,
     ],
     "hmof_surface_area_m2cm3_alignn": [
-        "https://figshare.com/ndownloader/files/31459219",
+        "https://ndownloader.figshare.com/files/31459219",
         1,
     ],
-    "hmof_pld_alignn": ["https://figshare.com/ndownloader/files/31459216", 1],
-    "hmof_lcd_alignn": ["https://figshare.com/ndownloader/files/31459201", 1],
+    "hmof_pld_alignn": ["https://ndownloader.figshare.com/files/31459216", 1],
+    "hmof_lcd_alignn": ["https://ndownloader.figshare.com/files/31459201", 1],
     "hmof_void_fraction_alignn": [
-        "https://figshare.com/ndownloader/files/31459228",
+        "https://ndownloader.figshare.com/files/31459228",
         1,
     ],
-    "ocp2020_all": ["https://figshare.com/ndownloader/files/41411025", 1],
-    "ocp2020_100k": ["https://figshare.com/ndownloader/files/41967303", 1],
-    "ocp2020_10k": ["https://figshare.com/ndownloader/files/41967330", 1],
+    "ocp2020_all": ["https://ndownloader.figshare.com/files/41411025", 1],
+    "ocp2020_100k": ["https://ndownloader.figshare.com/files/41967303", 1],
+    "ocp2020_10k": ["https://ndownloader.figshare.com/files/41967330", 1],
     "jv_pdos_alignn": [
-        "https://figshare.com/ndownloader/files/36757005",
+        "https://ndownloader.figshare.com/files/36757005",
         66,
         {"alignn_layers": 6, "gcn_layers": 6},
+    ],
+    "jv_raman_alignn": [
+        "https://ndownloader.figshare.com/files/62805487",
+        200,
     ],
 }
 
@@ -252,7 +260,8 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     # else:
     #    config_params = {}
     zfile = model_name + ".zip"
-    path = str(os.path.join(os.path.dirname(__file__), zfile))
+    # path = str(os.path.join(os.path.dirname(__file__), zfile))
+    path = os.path.join(get_cache_dir("alignn_models"), zfile)
     if not os.path.isfile(path):
         response = requests.get(url, stream=True)
         total_size_in_bytes = int(response.headers.get("content-length", 0))
@@ -283,6 +292,7 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     print("Path", os.path.abspath(path))
     print("Config", os.path.abspath(cfg))
     config = json.loads(zipfile.ZipFile(path).read(cfg))
+    print("config", config, type(config))
     # print("Loading the zipfile...", zipfile.ZipFile(path).namelist())
     data = zipfile.ZipFile(path).read(tmp)
     # model = ALIGNN(
@@ -290,16 +300,34 @@ def get_figshare_model(model_name="jv_formation_energy_peratom_alignn"):
     #        name="alignn", output_features=output_features, **config_params
     #    )
     # )
-    model = ALIGNN(ALIGNNConfig(**config["model"]))
+    print(config, type(config))
+    if config["model"]["name"] == "alignn":
+        model = ALIGNN(ALIGNNConfig(**config["model"]))
+        new_file, filename = tempfile.mkstemp()
+        with open(filename, "wb") as f:
+            f.write(data)
+        model.load_state_dict(
+            torch.load(filename, map_location=device, weights_only=False)[
+                "model"
+            ]
+        )
+        model.to(device)
+        model.eval()
+        if os.path.exists(filename):
+            os.remove(filename)
+    if config["model"]["name"] == "alignn_atomwise":
+        model = ALIGNNAtomWise(ALIGNNAtomWiseConfig(**config["model"]))
+        new_file, filename = tempfile.mkstemp()
+        with open(filename, "wb") as f:
+            f.write(data)
+        model.load_state_dict(
+            torch.load(filename, map_location=device, weights_only=False)
+        )
+        model.to(device)
+        model.eval()
+        if os.path.exists(filename):
+            os.remove(filename)
 
-    new_file, filename = tempfile.mkstemp()
-    with open(filename, "wb") as f:
-        f.write(data)
-    model.load_state_dict(torch.load(filename, map_location=device)["model"])
-    model.to(device)
-    model.eval()
-    if os.path.exists(filename):
-        os.remove(filename)
     return model
 
 
@@ -310,7 +338,21 @@ def get_prediction(
     max_neighbors=12,
 ):
     """Get model prediction on a single structure."""
-    model = get_figshare_model(model_name)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if os.path.isdir(model_name):
+
+        # import torch
+        # from jarvis.db.jsonutils import loadjson
+
+        config = loadjson(os.path.join(model_name, "config.json"))
+        model_path = os.path.join(model_name, "best_model.pt")
+        tmp = ALIGNNAtomWiseConfig(**config["model"])
+        model = ALIGNNAtomWise(tmp)
+        model.load_state_dict(torch.load(model_path, map_location=device))
+        model = model.to(device)
+        print(model)
+    else:
+        model = get_figshare_model(model_name)
     # print("Loading completed.")
     g, lg = Graph.atom_dgl_multigraph(
         atoms,
@@ -318,14 +360,11 @@ def get_prediction(
         max_neighbors=max_neighbors,
     )
     lat = torch.tensor(atoms.lattice_mat)
-    out_data = (
-        model([g.to(device), lg.to(device), lat.to(device)])
-        .detach()
-        .cpu()
-        .numpy()
-        .flatten()
-        .tolist()
-    )
+    out_data = model([g.to(device), lg.to(device), lat.to(device)])
+    if isinstance(out_data, dict):
+        out_data = out_data["out"]
+    print("out_data", out_data)
+    out_data = out_data.detach().cpu().numpy().flatten().tolist()
     return out_data
 
 

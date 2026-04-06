@@ -19,6 +19,7 @@ import zipfile
 import numpy as np
 from tqdm import tqdm
 import torch
+from jarvis.core.utils import get_cache_dir
 
 # Reference: https://doi.org/10.1039/D2DD00096B
 
@@ -44,7 +45,8 @@ def get_figshare_model_ff(
     all_models_ff = get_all_models()
     # https://doi.org/10.6084/m9.figshare.23695695
     if dir_path is None:
-        dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        # dir_path = str(os.path.join(os.path.dirname(__file__), model_name))
+        dir_path = os.path.join(get_cache_dir("alignn_ff"), model_name)
     # cwd=os.getcwd()
     dir_path = os.path.abspath(dir_path)
     if not os.path.exists(dir_path):
@@ -262,6 +264,7 @@ class AlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
                     torch.load(
                         os.path.join(path, model_filename),
                         map_location=self.device,
+                        weights_only=False,
                     )
                 )
             else:
@@ -269,9 +272,10 @@ class AlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
                     torch.load(
                         os.path.join(path, model_filename),
                         map_location=self.device,
+                        weights_only=False,
                     )["model"]
                 )
-            model.to(device)
+            model.to(self.device)
             model.eval()
             self.model = model
         else:
@@ -289,6 +293,10 @@ class AlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
             atom_features=self.config["atom_features"],
             use_canonize=self.config["use_canonize"],
         )
+        # print("self.devicee", self.device)
+        # print("g", g.device)
+        # print("lg", lg.device)
+        # print("model", self.model)
 
         if self.config["model"]["alignn_layers"] > 0:
             result = self.model(
@@ -445,9 +453,11 @@ class iAlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
             torch.load(
                 os.path.join(ff_path, ff_model_filename),
                 map_location=self.device,
+                weights_only=False,
             )
         )
         ff_model.eval()
+        ff_model.to(self.device)
         self.ff_model = ff_model
         if prop_path is None and prop_model is None:
             prop_path = get_figshare_model_ff(
@@ -466,9 +476,11 @@ class iAlignnAtomwiseCalculator(ase.calculators.calculator.Calculator):
             torch.load(
                 os.path.join(prop_path, prop_model_filename),
                 map_location=self.device,
+                weights_only=False,
             )
         )
         prop_model.eval()
+        prop_model.to(self.device)
         self.prop_model = prop_model
 
     def calculate(
