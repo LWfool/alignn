@@ -17,18 +17,18 @@ On Windows, use the 64-bit Python 3.10 Miniconda installer.
 ## Method 1 — conda (recommended)
 
 ```bash
-conda create --name my_alignn python=3.10 -y
+conda create --name my_alignn python=3.12 -y
 conda activate my_alignn
-conda install dgl=2.1.0 pytorch torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
+conda install -c dglteam/label/th24_cu124 dgl
 conda install alignn -y
 ```
 
 ## Method 2 — from GitHub (development install)
 
 ```bash
-conda create --name my_alignn python=3.10 -y
+conda create --name my_alignn python=3.12 -y
 conda activate my_alignn
-conda install dgl=2.1.0 pytorch torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
+conda install -c dglteam/label/th24_cu124 dgl
 git clone https://github.com/atomgptlab/alignn
 cd alignn
 python -m pip install -e .
@@ -42,14 +42,14 @@ version (see <https://www.dgl.ai/pages/start.html>).
 PyTorch 2.1 + CUDA 12.1 (Windows/Linux):
 
 ```bash
-pip install -q dgl -f https://data.dgl.ai/wheels/torch-2.1/cu121/repo.html
+conda install -c dglteam/label/th24_cu124 dgl
 pip install alignn
 ```
 
 CPU only:
 
 ```bash
-pip install -q dgl -f https://data.dgl.ai/wheels/torch-2.1/repo.html
+conda install -c dglteam/label/th24_cu124 dgl
 pip install alignn
 ```
 
